@@ -1,12 +1,12 @@
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Book My Stay - Hotel Booking System
  *
- * Use Case 1,2,3,4 Implementation
+ * Use Case 1 → 5 Implementation
  *
  * @author Vikki
- * @version 4.1
+ * @version 5.1
  */
 public class BookMyStayApp {
 
@@ -59,7 +59,6 @@ public class BookMyStayApp {
 
     // ================= INVENTORY =================
     static class RoomInventory {
-
         private HashMap<String, Integer> availability;
 
         public RoomInventory() {
@@ -72,34 +71,65 @@ public class BookMyStayApp {
         public int getAvailability(String roomType) {
             return availability.getOrDefault(roomType, 0);
         }
-
-        public void updateAvailability(String roomType, int newCount) {
-            availability.put(roomType, newCount);
-        }
-
-        public HashMap<String, Integer> getAllAvailability() {
-            return availability; // read-only usage expected
-        }
     }
 
     // ================= SEARCH SERVICE =================
     static class RoomSearchService {
-
         public void searchAvailableRooms(RoomInventory inventory, Room[] rooms) {
 
-            System.out.println("\n--- Available Rooms (Search Result) ---\n");
+            System.out.println("\n--- Available Rooms ---\n");
 
             for (Room room : rooms) {
-
                 int available = inventory.getAvailability(room.getRoomType());
 
-                //  Validation (filter unavailable rooms)
                 if (available > 0) {
-
                     room.displayRoomDetails();
                     System.out.println("Available: " + available);
-                    System.out.println("---------------------------");
+                    System.out.println("----------------------");
                 }
+            }
+        }
+    }
+
+    // ================= RESERVATION =================
+    static class Reservation {
+        private String guestName;
+        private String roomType;
+
+        public Reservation(String guestName, String roomType) {
+            this.guestName = guestName;
+            this.roomType = roomType;
+        }
+
+        public String getGuestName() { return guestName; }
+        public String getRoomType() { return roomType; }
+
+        public void displayReservation() {
+            System.out.println("Guest: " + guestName + " | Requested: " + roomType);
+        }
+    }
+
+    // ================= BOOKING QUEUE =================
+    static class BookingQueue {
+
+        private Queue<Reservation> queue;
+
+        public BookingQueue() {
+            queue = new LinkedList<>();
+        }
+
+        // Add booking request
+        public void addRequest(Reservation reservation) {
+            queue.offer(reservation);
+            System.out.println("Request Added: " + reservation.getGuestName());
+        }
+
+        // Display queue (FIFO order)
+        public void displayQueue() {
+            System.out.println("\n--- Booking Request Queue (FIFO) ---\n");
+
+            for (Reservation r : queue) {
+                r.displayReservation();
             }
         }
     }
@@ -108,28 +138,38 @@ public class BookMyStayApp {
     public static void main(String[] args) {
 
         String appName = "Book My Stay";
-        String version = "v4.1";
+        String version = "v5.1";
 
         System.out.println("=================================");
         System.out.println(" Welcome to " + appName);
         System.out.println(" Version: " + version);
         System.out.println("=================================");
 
-        // Room objects
-        Room single = new SingleRoom();
-        Room doubleRoom = new DoubleRoom();
-        Room suite = new SuiteRoom();
+        // Rooms
+        Room[] rooms = {
+                new SingleRoom(),
+                new DoubleRoom(),
+                new SuiteRoom()
+        };
 
-        Room[] rooms = {single, doubleRoom, suite};
-
-        // Inventory (central state)
+        // Inventory
         RoomInventory inventory = new RoomInventory();
 
-        // Search Service (READ ONLY)
-        RoomSearchService searchService = new RoomSearchService();
+        // Search (read-only)
+        RoomSearchService search = new RoomSearchService();
+        search.searchAvailableRooms(inventory, rooms);
 
-        // Perform search (NO STATE CHANGE)
-        searchService.searchAvailableRooms(inventory, rooms);
+        // ================= UC5 LOGIC =================
+
+        BookingQueue bookingQueue = new BookingQueue();
+
+        // Simulating booking requests
+        bookingQueue.addRequest(new Reservation("Alice", "Single Room"));
+        bookingQueue.addRequest(new Reservation("Bob", "Double Room"));
+        bookingQueue.addRequest(new Reservation("Charlie", "Suite Room"));
+
+        // Display queue
+        bookingQueue.displayQueue();
 
         System.out.println("\nApplication Finished.");
     }
